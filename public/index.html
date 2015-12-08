@@ -1,0 +1,40 @@
+<html ng-app="searchApp">
+<head>
+	<meta charset="utf-8">
+	<title>Unix Experience - Recherche</title>
+	<script src="angular.min.js"></script>
+	<script src="core.js"></script>
+	<link rel="stylesheet" href="core.css" />
+	<link rel="search" type="application/opensearchdescription+xml" title="UNIX Experience Search" href="/search.xml">
+</head>
+<body ng-controller="searchController">
+<div id="search-form">
+	<h1>Unix Experience Search</h1>
+	<input type="search" placeholder="Entrez votre recherche ici..." ng-model="searchWhat" ng-keypress="$event.which === 13 && search()" autofocus/>
+	<input type="button" value="Rechercher" ng-click="search()" class="button"/>
+</div>
+<div id="search-results-l" ng-show="searchState == 1">
+	<div class="sk-folding-cube">
+		<div class="sk-cube1 sk-cube"></div>
+		<div class="sk-cube2 sk-cube"></div>
+		<div class="sk-cube4 sk-cube"></div>
+		<div class="sk-cube3 sk-cube"></div>
+	</div>
+</div>
+<div id="search-results-m" ng-show="searchState == 2">
+	<h1>R&eacute;sultats</h1>
+	<span class="srl-found" ng-show="results.length > 0">Nous avons sélectionné pour vous {{ results.length < 100 ? results.length : 100 }} résultat{{ results.length > 1 ? "s" : ""}}</span>
+	<span class="srl-notfound" ng-show="results.length == 0"><div class="srl-notfound-smiley">:-(</div>Nous sommes désolés mais la recherche n'a pas permis de trouver de résultats intéressants.</span>
+	<div id="sr" ng-repeat="r in results">
+		<h2><a href="{{ r.link }}">{{ r.title }}</a></h2>
+		<div class="result-body">
+		<div class="result-link">{{ r.link }}</div>
+			{{ r.body }}
+		</div>
+	</div>
+</div>
+<div id="search-results-e" ng-show="searchState == 3">
+{{ searchErrorCode }}
+</div>
+</body>
+</html>
