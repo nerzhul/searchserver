@@ -101,6 +101,7 @@ app.get('/', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')
 	if (req.body.s === undefined) {
 		res.status(500).send("Invalid request")
+		return
 	}
 	getGoogleSearchResults(req.body.s, function(data) { res.status(200).send(data) })
 })
