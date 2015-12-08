@@ -8,21 +8,29 @@ SearchServer supports OpenSearch then you can add it as a browser search engine.
 * Install NodeJS & npm
 
 Debian/Ubuntu:
-  apt-get install node npm
+```shell
+apt-get install node npm
+```
 
 FreeBSD:
-  pkg install nodejs npm
+```shell
+pkg install nodejs npm
+```
 
 * Clone the repository in /usr/local/www or /var/www, depending of your OS
 * Launch server.js from node.js
 
-  git clone https://github.com/nerzhul/searchserver.git /usr/local/www
-  cd /usr/local/www
-  npm install
+```shell
+git clone https://github.com/nerzhul/searchserver.git /usr/local/www
+cd /usr/local/www
+npm install
+```
 
 # How to use
 Launch NodeJS:
-  node server.js
+```shell
+node server.js
+```
 
 Connect to the server on http://localhost:8080/
 
