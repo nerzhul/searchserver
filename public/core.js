@@ -52,7 +52,9 @@ app.controller('searchController', ['$scope','$http','$location',
 	    	$scope.$on('$locationChangeSuccess', function (event) {
 			$scope.location = $location.search();
 			$scope.searchWhat = $scope.location.q;
-			eval($scope.search());
+			if ($scope.searchWhat !== undefined) {
+				eval($scope.search());
+			}
 		});
 	}
 ]);
