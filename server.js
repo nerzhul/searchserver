@@ -76,16 +76,26 @@ function getGoogleSearchResults(searchString, callback) {
 }
 
 function indexInterestingLink(_url, _research_done, callback) {
-	elscli.index({
-		index: 'mysearch_interesting',
-		type: 'post',
-		body: {
-			url: _url,
-			research_done: _research_done
-		}
-	}, function (err, resp) {
-		callback({url: _url})
-		return
+	request(_url, function(error, response, body) {
+		jsdom.env(body, ['http://code.jquery.com/jquery-1.5.min.js'], function (error, window) {
+			if (error !== null) {
+				console.log("Invalid dom to parse for indexInterestingLink")
+				callback({ok:false})
+				return
+			}
+			elscli.index({
+				index: 'mysearch_interesting',
+				type: 'post',
+				body: {
+					url: _url,
+					research_done: _research_done,
+					page: striptags(window.$('body').html())
+				}
+			}, function (err, resp) {
+				callback({ok: true})
+				return
+			})
+		})
 	})
 }
 
