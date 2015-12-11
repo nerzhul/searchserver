@@ -10,10 +10,21 @@ h2 {
 	margin-bottom: 0;
 }
 
+#sr .result-subtitle {
+	width: 100%;
+	display: inline-block;
+}
+
 #sr .result-link {
 	font-style: italic;
-	font-size: 0.8em;
 	color: darkgreen;
+}
+
+#sr .result-link, #sr .result-functions {
+	font-size: 0.8em;
+	float: left;
+	margin-right: 0.5em;
+	cursor: pointer;
 }
 
 #sr {

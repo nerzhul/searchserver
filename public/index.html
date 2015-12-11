@@ -28,7 +28,10 @@
 	<div id="sr" ng-repeat="r in results">
 		<h2><a href="{{ r.link }}">{{ r.title }}</a></h2>
 		<div class="result-body">
-		<div class="result-link">{{ r.link }}</div>
+			<div class="result-subtitle">
+				<div class="result-link">{{ r.link }}</div>
+				<div class="result-functions"><span ng-click="markAsInteresting(r.link)">Intéressant</span></div>
+			</div>
 			{{ r.body }}
 		</div>
 	</div>

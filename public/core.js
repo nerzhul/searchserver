@@ -49,6 +49,14 @@ app.controller('searchController', ['$scope','$http','$location',
 			});
 		};
 
+		$scope.markAsInteresting = function(url) {
+			var res = $http.post("/interest", {"url": url, "terms_searched": $scope.searchWhat});
+			res.success(function(data, status, headers, config) {
+			});
+			res.error(function(data, status, headers, config) {
+			});
+		};
+
 	    	$scope.$on('$locationChangeSuccess', function (event) {
 			$scope.location = $location.search();
 			$scope.searchWhat = $scope.location.q;

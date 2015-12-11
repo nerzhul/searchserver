@@ -25,6 +25,8 @@
 var express  = require('express')
 var app = express()
 var bodyParser = require('body-parser')
+var elasticsearch = require('elasticsearch');
+var elscli = new elasticsearch.Client();
 var http = require('http')
 var request = require('request')
 var jsdom = require('jsdom')
@@ -73,6 +75,20 @@ function getGoogleSearchResults(searchString, callback) {
 	})
 }
 
+function indexInterestingLink(_url, _research_done, callback) {
+	elscli.index({
+		index: 'mysearch_interesting',
+		type: 'post',
+		body: {
+			url: _url,
+			research_done: _research_done
+		}
+	}, function (err, resp) {
+		callback({url: _url})
+		return
+	})
+}
+
 function initTemplateRendering() {
 	app.engine('html', swig.renderFile);
 	app.set('view engine', 'html');
@@ -104,6 +120,19 @@ app.get('/', function (req, res) {
 		return
 	}
 	getGoogleSearchResults(req.body.s, function(data) { res.status(200).send(data) })
+})
+.post('/interest', function (req, res) {
+	res.setHeader('Content-Type', 'application/json')
+	if (req.body.url === undefined || req.body.terms_searched === undefined) {
+		res.status(500).send("Invalid request")
+		return
+	}
+	indexInterestingLink(req.body.url, req.body.terms_searched,
+		function(data) { res.status(200).send(data) })
+})
+.get('/cleanup_interest', function (req, res) {
+	res.setHeader('Content-Type', 'application/json')
+	elscli.indices.delete({index: 'mysearch_interesting'}, function () { res.status(200).send({ok: true })})
 })
 .use(function (req, res, next) {
 	res.setHeader('Content-Type','text/plain')
