@@ -1,9 +1,3 @@
-# Licence
-
-This program is under the BSD 2-clauses license
-
-# Licence copy
-
 Copyright (c) 2015, Loic Blot <loic.blot@unix-experience.fr> 
 All rights reserved.
 Redistribution and use in source and binary forms, with or without

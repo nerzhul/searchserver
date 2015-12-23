@@ -8,10 +8,12 @@
 	<link rel="search" type="application/opensearchdescription+xml" title="UNIX Experience Search" href="/search.xml">
 </head>
 <body ng-controller="searchController">
-<div id="search-form">
-	<h1>Unix Experience Search</h1>
-	<input type="search" placeholder="Entrez votre recherche ici..." ng-model="searchWhat" ng-keypress="$event.which === 13 && search()" autofocus/>
-	<input type="button" value="Rechercher" ng-click="search()" class="button"/>
+<div id="{{ searchState == 0 ? 'search-form' : 'search-form-alt'}}">
+	<div id="{{ searchState == 0 ? '' : 'search-form-title' }}"><h1>Unix Experience Search</h1></div>
+	<div id="{{ searchState == 0 ? '' : 'search-form-elmts' }}">
+		<input type="search" placeholder="Entrez votre recherche ici..." ng-model="searchWhat" ng-keypress="$event.which === 13 && search()" autofocus/>
+		<input type="button" value="Rechercher" ng-click="search()" class="button"/>
+	</div>
 </div>
 <div id="search-results-l" ng-show="searchState == 1">
 	<div class="sk-folding-cube">

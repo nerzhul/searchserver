@@ -3,6 +3,7 @@ body {
 	font-family: Roboto-Thin;
 	font-size: 14pt;
 	text-align: center;
+	margin: 0;
 }
 
 h2 {
@@ -32,9 +33,24 @@ h2 {
 	margin-bottom: 2em;
 }
 
-#search-form {
+#search-form, #search-form-alt {
 	display: inline-block;
 	width: 100%;
+}
+
+#search-form-alt {
+	background-color: #EEE;
+	border-bottom: 1px solid #DDD;
+	padding-top: 0.2em;
+}
+
+#search-form-alt h1 {
+	font-size: 13pt;
+}
+
+#search-form-title, #search-form-elmts {
+	float: left;
+	margin-left: 4em;
 }
 
 #search-results-m {
@@ -133,6 +149,13 @@ input[type="search"] {
   border-color: #0C5;
   right: 0;
   top: 50%;
+}
+
+#search-form-alt .button
+{
+	font-size: 13px;
+	font-weight: bold;
+	width: 150px;
 }
 
 .sk-folding-cube {
