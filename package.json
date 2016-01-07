@@ -3,15 +3,17 @@
 	"version": "0.1.0",
 	"main": "server.js",
 	"author": "Loïc Blot",
+	"license": "BSD-2-Clause",
+	"repository": "https://github.com/nerzhul/searchserver.git",
 	"dependencies": {
-		"body-parser": ">0",
-		"elasticsearch": ">0",
-		"express": ">0",
-		"jsdom": ">0",
-		"request": ">0",
-		"swig": ">0",
-		"striptags": ">0",
-		"xml": ">0"
+		"body-parser": ">=1.14",
+		"elasticsearch": ">=10.0",
+		"express": ">=4.13",
+		"jsdom": ">=7.2",
+		"request": ">=2.67",
+		"swig": ">=1.4",
+		"striptags": ">=2.1",
+		"xml": ">=1.0"
 	}
 }
 
