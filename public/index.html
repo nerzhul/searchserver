@@ -24,7 +24,6 @@
 	</div>
 </div>
 <div id="search-results-m" ng-show="searchState == 2">
-	<h1>R&eacute;sultats</h1>
 	<span class="srl-found" ng-show="results.length > 0">Nous avons sélectionné pour vous {{ results.length < 100 ? results.length : 100 }} résultat{{ results.length > 1 ? "s" : ""}}</span>
 	<span class="srl-notfound" ng-show="results.length == 0"><div class="srl-notfound-smiley">:-(</div>Nous sommes désolés mais la recherche n'a pas permis de trouver de résultats intéressants.</span>
 	<div id="sr" ng-repeat="r in results">
