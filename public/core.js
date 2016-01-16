@@ -49,11 +49,11 @@ app.controller('searchController', ['$scope','$http','$location',
 			});
 		};
 
-		$scope.markAsInteresting = function(url) {
-			var res = $http.post("/interest", {"url": url, "terms_searched": $scope.searchWhat});
-			res.success(function(data, status, headers, config) {
+		$scope.markAsInteresting = function(r) {
+			var res = $http.post("/interest", {"url": r.link, "content": r.body, "terms_searched": $scope.searchWhat});
+				res.success(function(data, status, headers, config) {
 			});
-			res.error(function(data, status, headers, config) {
+				res.error(function(data, status, headers, config) {
 			});
 		};
 

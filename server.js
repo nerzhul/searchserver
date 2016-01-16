@@ -67,7 +67,7 @@ function getGoogleSearchResults(searchString, callback) {
 				}
 
 				var o = window.$(obj)
-				results[i]["body"] = striptags(o.html())
+				results[i]["body"] = striptags(o.html()).replace("&nbsp;"," ")
 			})
 
 			callback(results)
@@ -75,27 +75,19 @@ function getGoogleSearchResults(searchString, callback) {
 	})
 }
 
-function indexInterestingLink(_url, _research_done, callback) {
-	request(_url, function(error, response, body) {
-		jsdom.env(body, ['http://code.jquery.com/jquery-1.5.min.js'], function (error, window) {
-			if (error !== null) {
-				console.log("Invalid dom to parse for indexInterestingLink")
-				callback({ok:false})
-				return
-			}
-			elscli.index({
-				index: 'mysearch_interesting',
-				type: 'post',
-				body: {
-					url: _url,
-					research_done: _research_done,
-					page: striptags(window.$('body').html())
-				}
-			}, function (err, resp) {
-				callback({ok: true})
-				return
-			})
-		})
+function indexInterestingLink(_req, callback) {
+	elscli.index({
+		index: 'mysearch',
+		type: 'interesting_url',
+		body: {
+			url: _req.url,
+			research_done: _req.terms_searched,
+			research_done_na: _req.terms_searched,
+			content: _req.content
+		}
+	}, function (err, resp) {
+		callback({ok: true})
+		return
 	})
 }
 
@@ -133,11 +125,12 @@ app.get('/', function (req, res) {
 })
 .post('/interest', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')
-	if (req.body.url === undefined || req.body.terms_searched === undefined) {
+	if (req.body.url === undefined || req.body.terms_searched === undefined ||
+		req.body.content === undefined) {
 		res.status(500).send("Invalid request")
 		return
 	}
-	indexInterestingLink(req.body.url, req.body.terms_searched,
+	indexInterestingLink(req.body,
 		function(data) { res.status(200).send(data) })
 })
 .get('/cleanup_interest', function (req, res) {

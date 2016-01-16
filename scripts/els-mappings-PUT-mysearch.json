@@ -1,0 +1,16 @@
+{
+	"mappings": {
+		"interesting_url": {
+			"properties": {
+				"research_done_na": {
+					"type": "string",
+					"index": "not_analyzed"
+				},
+				"url": {
+					"type": "string",
+					"index": "not_analyzed"
+				}
+			}
+		}
+	}
+}
