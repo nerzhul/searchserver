@@ -1,27 +1,28 @@
 /*
-        Copyright (c) 2015, Loic Blot <loic.blot@unix-experience.fr> 
-        All rights reserved.
-        Redistribution and use in source and binary forms, with or without
-        modification, are permitted provided that the following conditions are met:
+	Copyright (c) 2015-2016, Loic Blot <loic.blot@unix-experience.fr>
+	All rights reserved.
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions are met:
 
-        * Redistributions of source code must retain the above copyright
-          notice, this list of conditions and the following disclaimer.
-        * Redistributions in binary form must reproduce the above copyright
-          notice, this list of conditions and the following disclaimer in the
-          documentation and/or other materials provided with the distribution.
+	* Redistributions of source code must retain the above copyright
+	  notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright
+	  notice, this list of conditions and the following disclaimer in the
+	  documentation and/or other materials provided with the distribution.
 
-        THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
-        EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-        DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
-        DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-        ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+	DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+var async = require('async')
 var express  = require('express')
 var app = express()
 var bodyParser = require('body-parser')
@@ -34,18 +35,63 @@ var striptags = require('striptags')
 var swig = require('swig')
 var urlparse = require('url')
 
+function getSearchResults(searchString, callback) {
+	async.parallel({
+		remote_engine: function (callback) {
+			getGoogleSearchResults(searchString, callback)
+		},
+		exact: function (callback) {
+			getELSExactResults(searchString, callback)
+		}
+	},
+	function (err, results) {
+		callback(results)
+	})
+}
+
+function getELSExactResults(searchString, callback) {
+	elscli.search({
+		index: 'mysearch',
+		type: 'interesting_url',
+		body: { query: {
+			filtered: { filter: {
+				term: {"research_done_na": searchString}
+			}}
+		}}
+	}).then(function (resp) {
+		var results = []
+		if (resp.hits !== undefined && resp.hits.hits !== undefined) {
+			for (var i = 0; i < resp.hits.hits.length; i++) {
+				if (resp.hits.hits[i]._source === undefined) {
+					continue
+				}
+
+				results.push({
+					url : resp.hits.hits[i]._source.url,
+					content: resp.hits.hits[i]._source.content,
+					title: resp.hits.hits[i]._source.title
+				})
+				console.log(resp.hits.hits[i])
+			}
+		}
+		callback(null, results)
+	}, function (err) {
+		callback(null, [])
+	})
+}
+
 function getGoogleSearchResults(searchString, callback) {
 	request("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8", function(error, response, body) {
 		if (error !== null) {
 			console.log("Invalid request sent for getGoogleSearchResults: " + error)
-			callback([])
+			callback(null, [])
 			return
 		}
 
 		jsdom.env(body, ['http://code.jquery.com/jquery-1.5.min.js'], function (error, window) {
 			if (error !== null) {
 				console.log("Invalid dom to parse for getGoogleSearchResults")
-				callback([])
+				callback(null, [])
 				return
 			}
 
@@ -56,7 +102,7 @@ function getGoogleSearchResults(searchString, callback) {
 				}
 				var o = window.$(obj)
 				results[i]["title"] = striptags(o.html())
-				
+
 				var rlink = urlparse.parse(o.attr("href"), true).query.q
 				results[i]["link"] = (rlink !== undefined ? rlink : o.attr("href"))
 			})
@@ -70,7 +116,7 @@ function getGoogleSearchResults(searchString, callback) {
 				results[i]["body"] = striptags(o.html()).replace("&nbsp;"," ")
 			})
 
-			callback(results)
+			callback(null, results)
 		})
 	})
 }
@@ -83,7 +129,8 @@ function indexInterestingLink(_req, callback) {
 			url: _req.url,
 			research_done: _req.terms_searched,
 			research_done_na: _req.terms_searched,
-			content: _req.content
+			content: _req.content,
+			title: _req.title
 		}
 	}, function (err, resp) {
 		callback({ok: true})
@@ -113,7 +160,7 @@ app.get('/', function (req, res) {
 		servername: 'search.unix-experience.fr',
 		serverproto: 'http'
 	})
-		
+
 })
 .post('/search', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')
@@ -121,12 +168,12 @@ app.get('/', function (req, res) {
 		res.status(500).send("Invalid request")
 		return
 	}
-	getGoogleSearchResults(req.body.s, function(data) { res.status(200).send(data) })
+	getSearchResults(req.body.s, function(data) { res.status(200).send(data) })
 })
 .post('/interest', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')
 	if (req.body.url === undefined || req.body.terms_searched === undefined ||
-		req.body.content === undefined) {
+		req.body.content === undefined || req.body.title === undefined) {
 		res.status(500).send("Invalid request")
 		return
 	}
