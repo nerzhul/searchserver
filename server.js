@@ -34,6 +34,10 @@ var jsdom = require('jsdom')
 var striptags = require('striptags')
 var swig = require('swig')
 var urlparse = require('url')
+var fs = require("fs");
+
+// Global regex
+var regexHTTPProto = new RegExp(/^https?:.*/);
 
 function getSearchResults(searchString, callback) {
 	async.parallel({
@@ -88,7 +92,7 @@ function getGoogleSearchResults(searchString, callback) {
 			return
 		}
 
-		jsdom.env(body, ['http://code.jquery.com/jquery-1.5.min.js'], function (error, window) {
+		jsdom.env(body, ["jquery-2.2.0.min.js"], function (error, window) {
 			if (error !== null) {
 				console.log("Invalid dom to parse for getGoogleSearchResults")
 				callback(null, [])
@@ -96,24 +100,24 @@ function getGoogleSearchResults(searchString, callback) {
 			}
 
 			var results = []
-			window.$('.g .r a').each(function (i, obj) {
-				if (results[i] === undefined) {
-					results[i] = {}
-				}
-				var o = window.$(obj)
-				results[i]["title"] = striptags(o.html())
-
+			var idx = 0
+			var $ = window.$
+			$('.g').each(function () {
+				var o = $(this).find('.r a')
 				var rlink = urlparse.parse(o.attr("href"), true).query.q
-				results[i]["link"] = (rlink !== undefined ? rlink : o.attr("href"))
-			})
-			// @TODO merge this .g selector with upper
-			window.$('.g .s .st').each(function (i, obj) {
-				if (results[i] === undefined) {
-					results[i] = {}
-				}
+				if (rlink.match(regexHTTPProto)) {
+					if (results[idx] === undefined) {
+						results[idx] = {}
+					}
 
-				var o = window.$(obj)
-				results[i]["body"] = striptags(o.html()).replace("&nbsp;"," ")
+					results[idx]["title"] = striptags(o.html())
+					results[idx]["link"] = (rlink !== undefined ? rlink : o.attr("href"))
+
+					var o = $(this).find('.s .st')
+					results[idx]["body"] = striptags(o.html()).replace("&nbsp;"," ")
+
+					idx++
+				}
 			})
 
 			callback(null, results)
