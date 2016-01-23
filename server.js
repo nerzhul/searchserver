@@ -104,19 +104,21 @@ function getGoogleSearchResults(searchString, callback) {
 			var $ = window.$
 			$('.g').each(function () {
 				var o = $(this).find('.r a')
-				var rlink = urlparse.parse(o.attr("href"), true).query.q
-				if (rlink.match(regexHTTPProto)) {
-					if (results[idx] === undefined) {
-						results[idx] = {}
+				if (o.attr("href") !== undefined) {
+					var rlink = urlparse.parse(o.attr("href"), true).query.q
+					if (rlink.match(regexHTTPProto)) {
+						if (results[idx] === undefined) {
+							results[idx] = {}
+						}
+
+						results[idx]["title"] = striptags(o.html())
+						results[idx]["link"] = (rlink !== undefined ? rlink : o.attr("href"))
+
+						var o = $(this).find('.s .st')
+						results[idx]["body"] = striptags(o.html()).replace("&nbsp;"," ")
+
+						idx++
 					}
-
-					results[idx]["title"] = striptags(o.html())
-					results[idx]["link"] = (rlink !== undefined ? rlink : o.attr("href"))
-
-					var o = $(this).find('.s .st')
-					results[idx]["body"] = striptags(o.html()).replace("&nbsp;"," ")
-
-					idx++
 				}
 			})
 
