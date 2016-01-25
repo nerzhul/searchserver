@@ -106,7 +106,7 @@ function getGoogleSearchResults(searchString, callback) {
 				var o = $(this).find('.r a')
 				if (o.attr("href") !== undefined) {
 					var rlink = urlparse.parse(o.attr("href"), true).query.q
-					if (rlink.match(regexHTTPProto)) {
+					if (rlink !== undefined && rlink.match(regexHTTPProto)) {
 						if (results[idx] === undefined) {
 							results[idx] = {}
 						}
