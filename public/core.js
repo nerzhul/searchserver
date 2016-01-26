@@ -26,7 +26,7 @@ function gafidx(obj, idx) {
 	return obj[idx] !== undefined ? obj[idx] : [];
 }
 
-var app = angular.module('searchApp', ["ngAnimate"]);
+var app = angular.module('searchApp', [])
 
 searchControllerScope = undefined;
 
