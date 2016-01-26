@@ -3,6 +3,7 @@
 	<meta charset="utf-8">
 	<title>Unix Experience - Recherche</title>
 	<script src="angular.min.js"></script>
+	<script src="ng-infinite-scroll.min.js"></script>
 	<script src="core.js"></script>
 	<link rel="stylesheet" href="core.css" />
 	<link rel="search" type="application/opensearchdescription+xml" title="UNIX Experience Search" href="/search.xml">
@@ -13,14 +14,6 @@
 	<div id="{{ searchState == 0 ? '' : 'search-form-elmts' }}">
 		<input type="search" placeholder="Entrez votre recherche ici..." ng-model="searchWhat" ng-keypress="$event.which === 13 && search()" autofocus/>
 		<input type="button" value="Rechercher" ng-click="search()" class="button"/>
-	</div>
-</div>
-<div id="search-results-l" ng-show="searchState == 1">
-	<div class="sk-folding-cube">
-		<div class="sk-cube1 sk-cube"></div>
-		<div class="sk-cube2 sk-cube"></div>
-		<div class="sk-cube4 sk-cube"></div>
-		<div class="sk-cube3 sk-cube"></div>
 	</div>
 </div>
 <div id="search-results-m" ng-show="searchState == 2">
@@ -36,9 +29,18 @@
 			{{ r.body }}
 		</div>
 	</div>
+	<div id="sr-scroll" infinite-scroll="loadMoreResults()" infinite-scroll-distance="1"></div>
 </div>
 <div id="search-results-e" ng-show="searchState == 3">
 {{ searchErrorCode }}
+</div>
+<div id="search-results-l" ng-show="searchState == 1">
+	<div class="sk-folding-cube">
+		<div class="sk-cube1 sk-cube"></div>
+		<div class="sk-cube2 sk-cube"></div>
+		<div class="sk-cube4 sk-cube"></div>
+		<div class="sk-cube3 sk-cube"></div>
+	</div>
 </div>
 </body>
 </html>

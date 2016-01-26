@@ -26,7 +26,7 @@ function gafidx(obj, idx) {
 	return obj[idx] !== undefined ? obj[idx] : [];
 }
 
-var app = angular.module('searchApp', [])
+var app = angular.module('searchApp', ['infinite-scroll'])
 
 searchControllerScope = undefined;
 
@@ -39,21 +39,57 @@ app.controller('searchController', ['$scope','$http','$location',
 		$scope.searchState = 0;
 		$scope.location = $location.search();
 		$scope.searchWhat = $scope.location.q;
+		$scope.oldSearchWhat = $scope.location.q;
 		$scope.searchErrorCode = 0;
+		$scope.searchPage = 1;
+		$scope.loadedSearchPage = 1;
 
 		$scope.search = function() {
 			$scope.searchState = 1;
+			// If we do another research, tell the buffer we do a new research & reset page count
+			// & reset results
+			if ($scope.oldSearchWhat != $scope.searchWhat) {
+				$scope.oldSearchWhat = $scope.searchWhat;
+				$scope.loadedSearchPage = 1;
+				$scope.searchPage = 1;
+				$scope.results = [];
+			}
 
-			var res = $http.post("/search", {"s": $scope.searchWhat});
+			var res = $http.post("/search", {"s": $scope.searchWhat, "p": $scope.searchPage});
 			res.success(function(data, status, headers, config) {
 				$scope.searchState = 2;
-				$scope.results = gafidx(data, "remote_engine");
+				// If no results (new search) affect array
+				if ($scope.results.length == 0) {
+					$scope.results = gafidx(data, "remote_engine");
+				}
+				// Else concat
+				else {
+					$scope.results += gafidx(data, "remote_engine");
+				}
 				$scope.exactResults = gafidx(data, "exact");
+				$scope.loadedSearchPage = $scope.searchPage;
 			});
 			res.error(function(data, status, headers, config) {
 				$scope.searchState = 3;
 				$scope.searchErrorCode = status;
+				$scope.loadedSearchPage = $scope.searchPage;
 			});
+		};
+
+		$scope.loadMoreResults = function () {
+			// If nothing to search or not results, do nothing
+			if ($scope.searchWhat === undefined || $scope.searchWhat.length == 0 ||
+				$scope.results.length == 0) {
+				return;
+			}
+
+			// If loaded page is last requested page, increment and request new
+			if ($scope.loadedSearchPage == $scope.searchPage) {
+				$scope.searchPage += 1;
+				alert($scope.searchPage);
+				$scope.search()
+				// And now search
+			}
 		};
 
 		$scope.markAsInteresting = function(r) {
