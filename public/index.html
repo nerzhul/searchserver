@@ -29,7 +29,7 @@
 			{{ r.body }}
 		</div>
 	</div>
-	<div id="sr-scroll" infinite-scroll="loadMoreResults()" infinite-scroll-distance="1"></div>
+	<div id="sr-scroll" infinite-scroll="loadMoreResults()" infinite-scroll-disabled='searchState <= 1 || searchState == 3'></div>
 </div>
 <div id="search-results-e" ng-show="searchState == 3">
 {{ searchErrorCode }}

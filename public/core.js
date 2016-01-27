@@ -45,7 +45,6 @@ app.controller('searchController', ['$scope','$http','$location',
 		$scope.loadedSearchPage = 1;
 
 		$scope.search = function() {
-			$scope.searchState = 1;
 			// If we do another research, tell the buffer we do a new research & reset page count
 			// & reset results
 			if ($scope.oldSearchWhat != $scope.searchWhat) {
@@ -54,6 +53,8 @@ app.controller('searchController', ['$scope','$http','$location',
 				$scope.searchPage = 1;
 				$scope.results = [];
 			}
+
+			$scope.searchState = $scope.searchPage == 1 ? 1 : 2;
 
 			var res = $http.post("/search", {"s": $scope.searchWhat, "p": $scope.searchPage});
 			res.success(function(data, status, headers, config) {
@@ -78,7 +79,7 @@ app.controller('searchController', ['$scope','$http','$location',
 
 		$scope.loadMoreResults = function () {
 			// If nothing to search or not results, do nothing
-			if ($scope.searchWhat === undefined || $scope.searchWhat.length == 0 ||
+			if ($scope.searchWhat === undefined || $scope.searchWhat.length < 2 ||
 				$scope.results.length == 0) {
 				return;
 			}
@@ -86,7 +87,6 @@ app.controller('searchController', ['$scope','$http','$location',
 			// If loaded page is last requested page, increment and request new
 			if ($scope.loadedSearchPage == $scope.searchPage) {
 				$scope.searchPage += 1;
-				alert($scope.searchPage);
 				$scope.search()
 				// And now search
 			}
