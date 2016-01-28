@@ -11,10 +11,10 @@
 	"dependencies": {
 		"async": ">0",
 		"body-parser": ">=1.14",
-		"elasticsearch": ">=10.0",
+		"elasticsearch": ">=10.1",
 		"express": ">=4.13",
-		"jsdom": ">=7.2",
-		"request": ">=2.67",
+		"jsdom": ">=8.0",
+		"request": ">=2.69",
 		"swig": ">=1.4",
 		"striptags": ">=2.1",
 		"xml": ">=1.0"
