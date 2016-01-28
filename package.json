@@ -14,6 +14,7 @@
 		"elasticsearch": ">=10.1",
 		"express": ">=4.13",
 		"jsdom": ">=8.0",
+		"pg": ">=4.4",
 		"request": ">=2.69",
 		"swig": ">=1.4",
 		"striptags": ">=2.1",

@@ -2,6 +2,8 @@
 SearchServer is a NodeJS/AngularJS web application which can substitute Google by fetching results from it,
 cleaning it and showing them to the user in a proper way.
 
+It offer the possibility to register interesting permitting to retrieve them fast if you research them another time.
+
 SearchServer supports OpenSearch then you can add it as a browser search engine.
 
 # How to install
@@ -26,7 +28,41 @@ cd /usr/local/www
 npm install
 ```
 
+* Configure your postgresql database
+
+Debian/Ubuntu:
+```shell
+apt-get install postgresql9.5-server
+su - postgres
+```
+
+FreeBSD
+```
+pkg install postgresql95-server
+su - pgsql
+```
+
+Create your user & database
+```shell
+createdb searchserver
+createuser searchuser -P
+psql searchserver
+```
+
+```SQL
+create table interesting_link (
+	ip inet NOT NULL,
+	url TEXT NOT NULL,
+	terms VARCHAR(1024) NOT NULL,
+	content TEXT NOT NULL,
+	title VARCHAR(256) NOT NULL
+);
+grant insert, select on interesting_link to searchuser;
+```
+
 # How to use
+Configure your database by copying config.js.example and changing the PostgreSQL chain
+
 Launch NodeJS:
 ```shell
 node server.js

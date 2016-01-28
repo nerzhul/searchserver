@@ -1,0 +1,3 @@
+{
+	"pg_url": "postgres://myuser:mypassword@mydbserver:5432/searchserver"
+}

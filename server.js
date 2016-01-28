@@ -34,7 +34,9 @@ var jsdom = require('jsdom')
 var striptags = require('striptags')
 var swig = require('swig')
 var urlparse = require('url')
-var fs = require("fs");
+var fs = require("fs")
+var pg = require('pg')
+var config = undefined
 
 request = request.defaults({
 	jar: true,
@@ -99,7 +101,6 @@ function getELSExactResults(searchString, callback) {
 
 function getGoogleSearchResults(searchString, nPage, callback) {
 	gStart = nPage * 10 - 10
-	console.log("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8&start="+gStart)
 	request("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8&start="+gStart, function(error, response, body) {
 		if (error !== null) {
 			console.log("Invalid request sent for getGoogleSearchResults: " + error)
@@ -142,7 +143,23 @@ function getGoogleSearchResults(searchString, nPage, callback) {
 	})
 }
 
-function indexInterestingLink(_req, callback) {
+function pushToMemory(clientIP, _req) {
+	pg.connect(config.pg_url, function(err, client, done) {
+		if(err) {
+			done()
+			console.log("pushToMemory error: " + err)
+			return
+		}
+
+		var query = client.query("INSERT INTO interesting_link (ip, url, terms, content, title) VALUES ($1, $2, $3, $4, $5);",
+			[clientIP, _req.url, _req.terms_searched, _req.content, _req.title])
+		query.on('end', function() {
+			done()
+			return
+		})
+	})
+}
+function pushToElasticsearch(_req, callback) {
 	elscli.index({
 		index: 'mysearch',
 		type: 'interesting_url',
@@ -199,7 +216,10 @@ app.get('/', function (req, res) {
 		res.status(500).send("Invalid request")
 		return
 	}
-	indexInterestingLink(req.body,
+
+	// data pushed to memory should be exactly data pushed to ELS
+	pushToMemory(req.headers['x-real-ip'], req.body)
+	pushToElasticsearch(req.body,
 		function(data) { res.status(200).send(data) })
 })
 .get('/cleanup_interest', function (req, res) {
@@ -211,4 +231,18 @@ app.get('/', function (req, res) {
 	res.status(404).send('La page que vous cherchez s\'est perdue dans les méandres du web profond')
 })
 
+// Load configuration
+var contents = fs.readFileSync("config.js");
+config = JSON.parse(contents);
+console.log("Configuration loaded")
+
+// Test pgsql connection
+var pgclient = new pg.Client(config.pg_url)
+pgclient.connect()
+console.log("Connection to PostgreSQL database established with success.")
+pgclient.end()
+
+// And now listen
 app.listen(8080)
+
+console.log("Searchserver started")
