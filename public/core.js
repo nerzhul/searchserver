@@ -84,14 +84,14 @@ app.controller('searchController', ['$scope','$http','$location',
 				return;
 			}
 
-			return; // disabled atm
-
 			// If loaded page is last requested page, increment and request new
+			/*
+			Disabled ATM
 			if ($scope.loadedSearchPage == $scope.searchPage) {
 				$scope.searchPage += 1;
 				$scope.search()
 				// And now search
-			}
+			}*/
 		};
 
 		$scope.markAsInteresting = function(r) {

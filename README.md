@@ -6,6 +6,10 @@ It offer the possibility to register interesting permitting to retrieve them fas
 
 SearchServer supports OpenSearch then you can add it as a browser search engine.
 
+# Prerequisites
+* PostgreSQL 9.5 or greater
+* Elasticsearch 1.0 or higher
+
 # How to install
 * Install NodeJS & npm
 
@@ -55,7 +59,8 @@ create table interesting_link (
 	url TEXT NOT NULL,
 	terms VARCHAR(1024) NOT NULL,
 	content TEXT NOT NULL,
-	title VARCHAR(256) NOT NULL
+	title VARCHAR(256) NOT NULL,
+	PRIMARY KEY (ip,url,terms,content,title)
 );
 grant insert, select on interesting_link to searchuser;
 ```

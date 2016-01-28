@@ -151,7 +151,7 @@ function pushToMemory(clientIP, _req) {
 			return
 		}
 
-		var query = client.query("INSERT INTO interesting_link (ip, url, terms, content, title) VALUES ($1, $2, $3, $4, $5);",
+		var query = client.query("INSERT INTO interesting_link (ip, url, terms, content, title) VALUES ($1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT interesting_link_pkey DO NOTHING;",
 			[clientIP, _req.url, _req.terms_searched, _req.content, _req.title])
 		query.on('end', function() {
 			done()
