@@ -36,13 +36,26 @@ var swig = require('swig')
 var urlparse = require('url')
 var fs = require("fs");
 
+request = request.defaults({
+	jar: true,
+	headers: {
+		'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0',
+		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+		'Accept-Language': 'en-US,en;q=0.5',
+		'Referrer': 'https://www.google.fr',
+		'Pragma': 'no-cache',
+		'Cache-Control': 'no-cache'
+	},
+	gzip: true
+});
+
 // Global regex
 var regexHTTPProto = new RegExp(/^https?:.*/);
 
-function getSearchResults(searchString, callback) {
+function getSearchResults(searchString, nPage, callback) {
 	async.parallel({
 		remote_engine: function (callback) {
-			getGoogleSearchResults(searchString, callback)
+			getGoogleSearchResults(searchString, nPage, callback)
 		},
 		exact: function (callback) {
 			getELSExactResults(searchString, callback)
@@ -84,8 +97,10 @@ function getELSExactResults(searchString, callback) {
 	})
 }
 
-function getGoogleSearchResults(searchString, callback) {
-	request("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8", function(error, response, body) {
+function getGoogleSearchResults(searchString, nPage, callback) {
+	gStart = nPage * 10 - 10
+	console.log("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8&start="+gStart)
+	request("https://www.google.fr/search?q="+searchString+"&ie=utf-8&oe=utf-8&start="+gStart, function(error, response, body) {
 		if (error !== null) {
 			console.log("Invalid request sent for getGoogleSearchResults: " + error)
 			callback(null, [])
@@ -105,7 +120,7 @@ function getGoogleSearchResults(searchString, callback) {
 			$('.g').each(function () {
 				var o = $(this).find('.r a')
 				if (o.attr("href") !== undefined) {
-					var rlink = urlparse.parse(o.attr("href"), true).query.q
+					var rlink = urlparse.parse(o.attr("href"), true).href
 					if (rlink !== undefined && rlink.match(regexHTTPProto)) {
 						if (results[idx] === undefined) {
 							results[idx] = {}
@@ -170,11 +185,12 @@ app.get('/', function (req, res) {
 })
 .post('/search', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')
-	if (req.body.s === undefined) {
+	if (req.body.s === undefined || req.body.p === undefined || isNaN(req.body.p) || req.body.p < 0
+		|| req.body.p > 100) {
 		res.status(500).send("Invalid request")
 		return
 	}
-	getSearchResults(req.body.s, function(data) { res.status(200).send(data) })
+	getSearchResults(req.body.s, req.body.p, function(data) { res.status(200).send(data) })
 })
 .post('/interest', function (req, res) {
 	res.setHeader('Content-Type', 'application/json')

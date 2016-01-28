@@ -78,11 +78,13 @@ app.controller('searchController', ['$scope','$http','$location',
 		};
 
 		$scope.loadMoreResults = function () {
-			// If nothing to search or not results, do nothing
+			// If nothing to search or no results, or greater than page 100
 			if ($scope.searchWhat === undefined || $scope.searchWhat.length < 2 ||
-				$scope.results.length == 0) {
+				$scope.results.length == 0 || $scope.searchPage > 100) {
 				return;
 			}
+
+			return; // disabled atm
 
 			// If loaded page is last requested page, increment and request new
 			if ($scope.loadedSearchPage == $scope.searchPage) {
