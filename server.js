@@ -27,7 +27,7 @@ var express  = require('express')
 var app = express()
 var bodyParser = require('body-parser')
 var elasticsearch = require('elasticsearch');
-var elscli = new elasticsearch.Client();
+var elscli = undefined
 var http = require('http')
 var request = require('request')
 var jsdom = require('jsdom')
@@ -72,6 +72,7 @@ function getELSExactResults(searchString, callback) {
 	elscli.search({
 		index: 'mysearch',
 		type: 'interesting_url',
+		method: 'POST',
 		body: { query: {
 			filtered: { filter: {
 				term: {"research_done_na": searchString}
@@ -160,19 +161,41 @@ function pushToMemory(clientIP, _req) {
 	})
 }
 function pushToElasticsearch(_req, callback) {
-	elscli.index({
+	elscli.search({
 		index: 'mysearch',
 		type: 'interesting_url',
-		body: {
-			url: _req.url,
-			research_done: _req.terms_searched,
-			research_done_na: _req.terms_searched,
-			content: _req.content,
-			title: _req.title
+		method: 'POST',
+		body: { query: {
+			filtered: { filter: {
+				term: {"research_done_na": _req.terms_searched},
+				term: {"url": _req.url},
+				term: {"content_na": _req.content},
+				term: {"title_na": _req.title}
+			}}
+		}}
+	}).then(function (resp) {
+		if (resp.hits.hits.length == 0) {
+			elscli.index({
+				index: 'mysearch',
+				type: 'interesting_url',
+				body: {
+					url: _req.url,
+					research_done: _req.terms_searched,
+					research_done_na: _req.terms_searched,
+					content: _req.content,
+					content_na: _req.content,
+					title: _req.title,
+					title_na: _req.title
+				}
+			}, function (err, resp) {
+				callback({ok: true})
+				return
+			})
 		}
-	}, function (err, resp) {
-		callback({ok: true})
-		return
+		else {
+			callback({ok: true})
+			return
+		}
 	})
 }
 
@@ -218,7 +241,7 @@ app.get('/', function (req, res) {
 	}
 
 	// data pushed to memory should be exactly data pushed to ELS
-	pushToMemory(req.headers['x-real-ip'], req.body)
+	pushToMemory(req.headers['x-real-ip'] !== undefined ? req.headers['x-real-ip'] : '127.0.0.1', req.body)
 	pushToElasticsearch(req.body,
 		function(data) { res.status(200).send(data) })
 })
@@ -241,6 +264,10 @@ var pgclient = new pg.Client(config.pg_url)
 pgclient.connect()
 console.log("Connection to PostgreSQL database established with success.")
 pgclient.end()
+
+// Init ELS connection
+elscli = new elasticsearch.Client(config.elasticsearch);
+console.log("Elasticsearch client loaded.")
 
 // And now listen
 app.listen(8080)

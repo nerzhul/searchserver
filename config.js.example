@@ -1,3 +1,4 @@
 {
-	"pg_url": "postgres://myuser:mypassword@mydbserver:5432/searchserver"
+	"pg_url": "postgres://myuser:mypassword@mydbserver:5432/searchserver",
+	"elasticsearch": {"host": "localhost:9200"}
 }
