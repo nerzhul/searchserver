@@ -87,11 +87,10 @@ function getELSExactResults(searchString, callback) {
 				}
 
 				results.push({
-					url : resp.hits.hits[i]._source.url,
-					content: resp.hits.hits[i]._source.content,
+					link: resp.hits.hits[i]._source.url,
+					body: resp.hits.hits[i]._source.content,
 					title: resp.hits.hits[i]._source.title
 				})
-				console.log(resp.hits.hits[i])
 			}
 		}
 		callback(null, results)
