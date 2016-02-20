@@ -3,11 +3,26 @@ package main
 import (
 	"net/http"
 	"io/ioutil"
+	"log"
+	"os"
 	"encoding/json"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/gzip"
 	"github.com/martini-contrib/render"
+	"database/sql"
+	_ "github.com/lib/pq"
+)
+
+type Config struct {
+	pg_url string
+}
+
+var (
+	Info    *log.Logger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Warning *log.Logger = log.New(os.Stdout, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Error   *log.Logger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	cfg Config
 )
 
 type SearchRequest struct {
@@ -65,10 +80,58 @@ func markInterest(r render.Render, req *http.Request) {
 		return
 	}
 
+
+	var realIp string = "127.0.0.1"
+	if len(req.Header["X-Real-IP"]) != 0 {
+		realIp = req.Header["X-Real-IP"][0]
+	}
+
+	pushToMemory(realIp, t)
+	pushToElasticsearch(t)
+
 	r.JSON(200, map[string]interface{}{"ok": true})
 }
 
+func pushToMemory(clientIP string, t InterestRequest) bool {
+	db, err := sql.Open("postgres", "postgres://ssuser:sspwd@127.0.0.1:5432/searchserver")
+	if err != nil {
+		Error.Printf("Failed to connect to PostgreSQL database. Error => %s\n", err)
+		return false
+	}
+
+	_, err = db.Query("INSERT INTO interesting_link (ip, url, terms, content, title) VALUES ($1, $2, $3, $4, $5) " +
+		"ON CONFLICT ON CONSTRAINT interesting_link_pkey DO NOTHING;",
+		clientIP, t.Url, t.Searched_Terms, t.Content, t.Title)
+	if (err != nil) {
+		Error.Println("Failed to insert datas to interest memory")
+		return false
+	}
+
+	return true
+}
+
+func pushToElasticsearch(t InterestRequest) {
+
+}
+
+func readConfig() {
+	cfg.pg_url = "postgresql://user:password@localhost/searchserver"
+
+	cfgFile, err := ioutil.ReadFile("config.json")
+	if err != nil {
+		Warning.Println("Unable to read config.json. Config set to defaults.")
+		return
+	}
+
+	err = json.Unmarshal(cfgFile, &cfg)
+	if err != nil {
+		Warning.Println("Failed to parse config.json")
+		return
+	}
+}
 func main() {
+	readConfig()
+
 	m := martini.Classic()
 	m.Use(gzip.All())
 
