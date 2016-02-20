@@ -117,15 +117,15 @@ func pushToElasticsearch(t InterestRequest) {
 func readConfig() {
 	cfg.pg_url = "postgresql://user:password@localhost/searchserver"
 
-	cfgFile, err := ioutil.ReadFile("config.json")
+	cfgFile, err := ioutil.ReadFile("config.js")
 	if err != nil {
-		Warning.Println("Unable to read config.json. Config set to defaults.")
+		Warning.Println("Unable to read config.js. Config set to defaults.")
 		return
 	}
 
 	err = json.Unmarshal(cfgFile, &cfg)
 	if err != nil {
-		Warning.Println("Failed to parse config.json")
+		Warning.Println("Failed to parse config.js")
 		return
 	}
 }
